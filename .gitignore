@@ -5,6 +5,7 @@ MANIFEST
 *.pyc
 *.png
 *.h5
+*.hdf5
 *.h5.old
 *.txt
 *.log
@@ -14,3 +15,7 @@ MANIFEST
 outdir/*
 .idea/*
 *.json
+*.DS_Store
+
+.pytest_cache/
+*.png
