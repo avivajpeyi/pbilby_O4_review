@@ -2,7 +2,7 @@ from src.reader import GWTC1Result
 import os
 
 ROOT = os.path.dirname(__file__)
-LVK_GW150914 = os.path.join("../lvk_samples/GW150914_GWTC-1.hdf5")
+LVK_GW150914 = os.path.join("../gwtc1_samples/GW150914_GWTC-1.hdf5")
 
 
 def test_corner_from_gwtc1():

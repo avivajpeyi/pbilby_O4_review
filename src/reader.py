@@ -111,11 +111,22 @@ class GWTC1Result(Res):
                 posterior = pd.DataFrame(f['IMRPhenomPv2NRT_lowSpin_posterior'][:])
         return cls(posterior, event_name)
 
+class GWTC3Result(Res):
+
+    def from_hdf5(cls, path: str) -> 'GWTC3Result':
+        event_name = get_event_name(path)
+        with h5py.File(path, 'r') as f:
+            if 'Overall_posterior' in f:
+                posterior = pd.DataFrame(f['Overall_posterior'][:])
+            elif 'IMRPhenomPv2NRT_lowSpin_posterior' in f:
+                posterior = pd.DataFrame(f['IMRPhenomPv2NRT_lowSpin_posterior'][:])
+        return cls(posterior, event_name)
+
 
 class BilbyResult(Res):
 
     @classmethod
-    def from_hdf5(self, fname):
+    def from_hdf5(self, fname)->'BilbyResult':
         event_name = get_event_name(fname)
         try:
             r = CBCResult.from_hdf5(fname)

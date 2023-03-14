@@ -27,7 +27,7 @@ def get_review_results() -> Dict[str, CBCResult]:
 
 
 def get_lvk_results() -> Dict[str, CBCResult]:
-    files = glob.glob(f"{ROOT}/../lvk_samples/*.hdf5")
+    files = glob.glob(f"{ROOT}/../gwtc1_samples/*.hdf5")
     results = {}
     for f in files:
         name = get_event_name(f)
