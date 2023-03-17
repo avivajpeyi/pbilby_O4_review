@@ -6,7 +6,7 @@ import os
 import glob
 from typing import List, Dict
 from bilby.gw.result import CBCResult
-from .reader import GWTC1Result, BilbyResult
+from .reader import GWTC1Result, BilbyResult, GWTC3Result
 from .utils import get_event_name
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
@@ -15,6 +15,15 @@ print(f"bilby version: {bilby.__version__}")
 
 ROOT = os.path.dirname(__file__)
 
+
+def _get_res(dir_regex, res):
+    files = glob.glob(dir_regex)
+    results = {}
+    for f in files:
+        name = get_event_name(f)
+        print(f"Loading {res.__class__}:{name}")
+        results[name] = res.from_hdf5(f).CBCResult
+    return results
 
 def get_review_results() -> Dict[str, CBCResult]:
     files = glob.glob(f"{ROOT}/../review_results/*.hdf5")
@@ -26,7 +35,7 @@ def get_review_results() -> Dict[str, CBCResult]:
     return results
 
 
-def get_lvk_results() -> Dict[str, CBCResult]:
+def get_gwct1_results() -> Dict[str, CBCResult]:
     files = glob.glob(f"{ROOT}/../gwtc1_samples/*.hdf5")
     results = {}
     for f in files:
@@ -36,11 +45,14 @@ def get_lvk_results() -> Dict[str, CBCResult]:
     return results
 
 
+
+
 def plot_review_results(plot_dir: str = "plots"):
     os.makedirs(plot_dir, exist_ok=True)
 
-    lvk_results = get_lvk_results()
-    review_results = get_review_results()
+    gwtc1_results = _get_res(f"{ROOT}/../gwtc1_samples/*.hdf5", GWTC1Result)
+    gwtc3_results = _get_res(f"{ROOT}/../gwtc3_samples/*.h5", GWTC3Result)
+    review_results = _get_res(f"{ROOT}/../review_results/*.hdf5", BilbyResult)
 
     parameter_sets = dict(
         mass=["mass_1", "mass_2", "mass_ratio", "chirp_mass"],
@@ -52,7 +64,8 @@ def plot_review_results(plot_dir: str = "plots"):
         for param_set in parameter_sets:
             param = parameter_sets[param_set]
             fname = f"{plot_dir}/{name}_{param_set}.png"
-            plot_overlaid_corner(result, lvk_results[name], param, fname)
+            lvk_res = gwtc3_results.get(name, gwtc1_results[name])
+            plot_overlaid_corner(result, lvk_res, param, fname)
 
 
 def _check_list_is_subset(l1, l2):

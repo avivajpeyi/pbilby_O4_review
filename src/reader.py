@@ -6,13 +6,17 @@ import bilby
 from bilby.gw.conversion import component_masses_to_chirp_mass, chirp_mass_and_mass_ratio_to_component_masses
 import numpy as np
 from .utils import get_event_name
-from abc import ABC, abstractmethod
+import os
+from abc import abstractmethod
+
+from typing import List, Dict, Optional
 
 
 class Res:
-    def __init__(self, posterior: pd.DataFrame, event_name: str):
+    def __init__(self, posterior: pd.DataFrame, event_name: str, psds: Optional[Dict[str, np.ndarray]] = None):
         self.event_name = event_name
         self.posterior = posterior
+        self.psds = psds
 
     @classmethod
     @abstractmethod
@@ -113,14 +117,24 @@ class GWTC1Result(Res):
 
 class GWTC3Result(Res):
 
+    @classmethod
     def from_hdf5(cls, path: str) -> 'GWTC3Result':
         event_name = get_event_name(path)
         with h5py.File(path, 'r') as f:
-            if 'Overall_posterior' in f:
-                posterior = pd.DataFrame(f['Overall_posterior'][:])
-            elif 'IMRPhenomPv2NRT_lowSpin_posterior' in f:
-                posterior = pd.DataFrame(f['IMRPhenomPv2NRT_lowSpin_posterior'][:])
-        return cls(posterior, event_name)
+            if 'C01:IMRPhenomXPHM' in f:
+                d = f['C01:IMRPhenomXPHM']
+                posterior = pd.DataFrame(d['posterior_samples'][:])
+                psds = dict(H1=d['psds/H1'][:], L1=d['psds/L1'][:])
+            else:
+                raise ValueError(f"Could not find posterior in {path}")
+        return cls(posterior, event_name, psds)
+
+    def write_psds(self, outdir:str='.'):
+        for det, psd in self.psds.items():
+            fname = f"{self.event_name}_gwtc3_{det}_psd.txt"
+            fpath = os.path.join(outdir, fname)
+            np.savetxt(fpath, psd, delimiter=" ")
+
 
 
 class BilbyResult(Res):
