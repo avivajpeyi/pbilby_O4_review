@@ -1,0 +1,1 @@
+download_strain ../config_pbilby.ini
